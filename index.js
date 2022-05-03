@@ -25,115 +25,69 @@
 //   );
 
 
-  function init () {
+const inquirer = require('inquirer')
+const template = require('./src/page-template')
+const writeFile = require('./src/write-file')
 
-    const inquirer = require('inquirer');
-    const fs = require('fs'); 
-    const generate = require('./utils/generateMarkdown.js');
-    const path = require('path');
-    
-    inquirer
-      .prompt([
-        { 
-          type: "input",
-          message: "What is the Title for your project?",
-          name: "title",  
-             },
-        { 
-          type: "input",
-          message: "What is the Description of your project?",
-          name: "description",  
-             },
-        {
-           type: "input",
-           message: "How do you Install your application?",
-           name: "installation",
-        },
-        {
-            type: "input",
-            message: "How do you Use your application?",
-            name: "usage",
-        },
-        {
-            type: "input",
-            message: "How can people Contribute to your project?",
-            name: "contributing",
-        },
-        {
-            type: "input",
-            message: "What is your GitHub username?",
-            name: "github"
-        },
-        {
-            type: "input",
-            message: "What is your email address where users and contributors can send questions?",
-            name: "email"
-        },
-      ])
-      .then((response) => {
-        return fs.writeFileSync(path.join (process.cwd(), "README.md"), generate(response));
-      });
-    }
-    
-    init();
+// constructor classes and questions for each employee type
+const { Manager, managerQuestionsArr } = require('./lib/manager');
+const { Engineer, engineerQuestionsArr } = require('./lib/engineer');
+const { Intern, internQuestionsArr } = require('./lib/intern');
+// stores all team member objects
+const employeesArr = []
 
+const init = () => { managerQuestions() }
+// prompts manager questions then creates object from user inputs based on Manager class 
+const managerQuestions = () => {
+    inquirer.prompt(managerQuestionsArr)
+    .then(( answers ) => {
+        answers = new Manager(answers.name, answers.id, answers.email, answers.officeNumber)
+        employeesArr.push(answers);
+        return employeePrompt();
+    })
+}
+// prompts engineer questions then creates object from user inputs based on Engineer class 
+const engineerQuestions = () => {
+    inquirer.prompt(engineerQuestionsArr)
+    .then(( answers ) => {
+        answers = new Engineer(answers.name, answers.id, answers.email, answers.github)
+        employeesArr.push(answers);
+        return employeePrompt();
+    })
+}
+// prompts intern questions then creates object from user inputs based on Intern class 
+const internQuestions = () => {
+    inquirer.prompt(internQuestionsArr)
+    .then(( answers ) => {
+        answers = new Intern(answers.name, answers.id, answers.email, answers.school)
+        employeesArr.push(answers);
+        return employeePrompt();
+    })
+}
+// handles prompts
+const employeePrompt = () => {
+    inquirer.prompt([{
+        type: 'list',
+        name: 'employeeType',
+        message: "What kind of team member would you like to add?",
+        choices: [
+            {name: 'Engineer', value: "addEngineer"},
+            {name: 'Intern', value: "addIntern"},
+            {name: 'DONE', value: "done"}
+        ]
+    }])
+    .then( answer => {
+        // sends correct prompts based on the employee type
+        if (answer.employeeType === 'addEngineer') { engineerQuestions(); };
+        if (answer.employeeType === 'addIntern') { internQuestions(); };
+        if (answer.employeeType === 'done') {
+            // converts users inputs into HTML
+            let html = template(employeesArr)
+            console.log('...');
+            // creates HTML file
+            writeFile(html);
+        }
+    })
+}
 
-    function generateReadme(answers){
-      let badge="";
-      let licenseLink;
-      if(answers.license)
-      {
-          badge = `(https://img.shields.io/badge/LICENSE-${answers.license.replaceAll(' ','%20')}-green)`;
-      }
-      switch (answers.license)
-      {
-          case 'Apache License 2.0':
-              licenseLink = `This project is covered under ${answers.license}. 
-              For more information [clickhere](https://opensource.org/licenses/Apache-2.0)`;
-              break;
-          case 'MIT License':
-              licenseLink = `This project is covered under ${answers.license}. 
-              For more information [click here](https://opensource.org/licenses/MIT)`;
-              break;
-          case 'Eclipse Public License 2.0':
-              licenseLink = `This project is covered under ${answers.license}. 
-              For more information [click here](https://opensource.org/licenses/EPL-2.0)`;
-              break;
-              
-          default:
-              licenseLink = `This project is covered under ${answers.license}.`;
-              break;
-      }
-  
-  
-  
-      return  `
-  ![License: ${answers.license}]${badge}
-  # ${answers.title}
-  ## Description
-  ${answers.description}
-      
-  ## Table of Contents
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Contribution](#contribution)
-  - [Tests](#tests)
-  - [License](#license)
-  - [Questions](#questions)
-  ## Installation  
-  ${answers.installation}
-        
-  ## Usage      
-  ${answers.usage}
-        
-  ## Contribution
-  ${answers.contribution}
-  ## Tests
-  ${answers.tests}
-  ![gif showing installation](assets/screen1.gif)
-  ${licenseLink}
-  ## Questions
-  Feel free to email at ${answers.email}, if you have any further questions relating to this project.
-  Checkout more on [Github](https://github.com/${answers.github})
-      `;
-  }
+init();

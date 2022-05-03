@@ -1,18 +1,20 @@
-const Employee = require('../lib/Employee');
+const { Intern } = require('../lib/Intern');
 
-test('Creates new employee', () => {
-    const employee = new Employee('John Smith', 1234, 'john@smith.com');
+test('Creates new Intern', () => {
+    const employee = new Intern('Sara Kim', 1234, 'SaraKim@company.com', 'UT');
 
-    expect(employee.name).toBe("John Smith");
+    expect(employee.name).toBe("Sara Kim");
     expect(employee.id).toEqual(expect.any(Number));
     expect(employee.email).toEqual(expect.any(String));
+    expect(employee.school).toEqual(expect.any(String));
 })
 
-test('Checks all methods for Employee class', () => {
-    const employee = new Employee('John Smith', 1234, 'john@smith.com');
+test('Checks all methods for Interns class', () => {
+    const employee = new Intern('Sara Kim', 1234, 'SaraKim@company.com', 'UT');
 
     expect(employee.getName()).toBe(employee.name);
     expect(employee.getId()).toBe(employee.id);
     expect(employee.getEmail()).toBe(employee.email);
-    expect(employee.getRole()).toBe('Employee');
+    expect(employee.getSchool()).toBe(employee.school);
+    expect(employee.getRole()).toBe('Intern');
 })
